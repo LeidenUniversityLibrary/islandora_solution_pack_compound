@@ -94,6 +94,13 @@ function islandora_compound_object_admin_form($form, &$form_state) {
     '#default_value' => variable_get('islandora_compound_object_show_compound_parents_in_breadcrumbs', FALSE),
   );
 
+  $form['islandora_compound_object_redirect_to_first'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Redirect to first child when a compound object is requested.'),
+    '#description' => t('Compound objects themselves redirect to there first child when this setting is enabled. This solves the problem that blocks on compound views get the wrong context.'),
+    '#default_value' => variable_get('islandora_compound_object_redirect_to_first', FALSE),
+  );
+
   $form['islandora_compound_object_query_backend'] = array(
     '#type' => 'radios',
     '#title' => t('Compound Member Query'),
