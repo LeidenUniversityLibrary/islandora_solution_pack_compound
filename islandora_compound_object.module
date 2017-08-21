@@ -261,30 +261,29 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
 }
 
 /**
- * Implements hook_page_build(&$page).
+ * Implements hook_page_build().
  */
 function islandora_compound_object_page_build(&$page) {
   // Redirect to first child of a compound if this is the compound page itself.
   if (variable_get('islandora_compound_object_redirect_to_first', FALSE)) {
-    $curpath = current_path();
-    $pathparts = explode('/', $curpath); 
-    if (count($pathparts) === 3 && $pathparts[0] === 'islandora' && $pathparts[1] === 'object') {
+    $item = menu_get_item();
+    if ($item && $item['path'] === 'islandora/object/%') {
       $object = menu_get_object('islandora_object', 2);
       if ($object) {
         $children = islandora_compound_object_get_parts($object->id);
         if (!empty($children)) {
-          // we found a compound with children, redirect to the first child.
+          // We found a compound with children, redirect to the first child.
           $firstchild = $children[0];
           if ($firstchild !== $object->id) {
             $redirect_path = 'islandora/object/' . $firstchild;
             $options = array();
             $options['query'] = drupal_get_query_parameters();
 
-            drupal_goto($redirect_path, $options, 301);
+            drupal_goto($redirect_path, $options);
           }
         }
       }
-    } 
+    }
   }
 }
 
