@@ -52,6 +52,7 @@
  <?php endif; ?>
 
  <?php if (count($themed_siblings) > 0): ?>
+   <?php $query_params = drupal_get_query_parameters(); ?>
    <div class="islandora-compound-thumbs">
    <?php foreach ($themed_siblings as $sibling): ?>
      <div class="islandora-compound-thumb">
@@ -64,7 +65,7 @@
          )
        ),
        'islandora/object/' . $sibling['pid'],
-       array('html' => TRUE)
+       array('html' => TRUE, 'query' => $query_params)
      );?>
      </div>
    <?php endforeach; // each themed_siblings ?>
