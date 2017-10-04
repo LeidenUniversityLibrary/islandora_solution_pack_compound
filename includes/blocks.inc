@@ -29,6 +29,9 @@ function islandora_compound_object_jail_display_block() {
         "$module_path/js/compound_jail.js" => array(
           'group' => JS_LIBRARY,
         ),
+        "$module_path/js/show_selected.js" => array(
+          'group' => JS_LIBRARY,
+        ),
       );
       $block['#attached']['js'][] = array(
         'data' => array(

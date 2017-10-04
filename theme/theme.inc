@@ -12,6 +12,7 @@
  */
 function template_preprocess_islandora_compound_prev_next(array &$variables) {
   drupal_add_js(drupal_get_path('module', 'islandora_compound_object') . '/js/caption_width.js');
+  drupal_add_js(drupal_get_path('module', 'islandora_compound_object') . '/js/show_selected.js');
 
   $themed_siblings = array();
   $image_path = drupal_get_path('module', 'islandora');
