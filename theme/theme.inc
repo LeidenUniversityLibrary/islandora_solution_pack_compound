@@ -60,9 +60,13 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
       $themed_siblings[] = $sibling;
     }
   }
+  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+  $compoundtype = islandora_compound_object_get_type($parent_object);
+  if (!empty($compoundtype)) {
+    $variables['theme_hook_suggestions'] += theme_get_suggestions(array($compoundtype), 'islandora_compound_prev_next');
+  }
   $variables['themed_siblings'] = $themed_siblings;
 }
-
 
 /**
  * Implements theme_element().

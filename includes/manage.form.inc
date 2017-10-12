@@ -18,12 +18,27 @@ function islandora_compound_object_manage(FedoraObject $object) {
  * Compound management form.
  */
 function islandora_compound_object_manage_form($form, &$form_state, $object) {
+  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
   $form = array();
   $form_state['object'] = $object;
   $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
 
-  // Add child objects.
   if ((variable_get('islandora_compound_object_compound_children', TRUE) && in_array(ISLANDORA_COMPOUND_OBJECT_CMODEL, $object->models)) || !variable_get('islandora_compound_object_compound_children', TRUE)) {
+    // Choose compound type
+    $options = islandora_compound_object_types();
+    $options = array_map(function($v) { return $v['name']; }, $options);
+    $currenttype = islandora_compound_object_get_type($object);
+    $form['compound_type'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Compound type'),
+    );
+    $form['compound_type']['type_select'] = array(
+      '#type' => 'select',
+      '#options' => $options,
+      '#default_value' => $currenttype,
+    );
+
+    // Add child objects.
     $form['add_children'] = array(
       '#type' => 'fieldset',
       '#title' => t('Add Child Objects'),
@@ -123,6 +138,15 @@ function islandora_compound_object_manage_form_validate($form, &$form_state) {
   $object = $form_state['values']['object'];
   $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
 
+  // Type
+  if (!empty($form_state['values']['type_select'])) {
+    module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+  
+    $possible_types = islandora_compound_object_types();
+    if (!isset($possible_types[$form_state['values']['type_select']])) {
+      form_set_error('type_select', t('This type is not allowed.'));
+    }
+  }
   // Child.
   if (!empty($form_state['values']['child'])) {
     if (variable_get('islandora_compound_object_compound_children', TRUE)) {
@@ -198,6 +222,11 @@ function islandora_compound_object_manage_form_submit($form, &$form_state) {
   $object = $form_state['values']['object'];
   $create_thumbs = variable_get('islandora_compound_object_thumbnail_child', TRUE);
   $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
+
+  // Type.
+  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+  islandora_compound_object_set_type($object, $form_state['values']['type_select']);
+
   // Relationship from child to this object.
   if (!empty($form_state['values']['child'])) {
     $child_object = islandora_object_load($form_state['values']['child']);
