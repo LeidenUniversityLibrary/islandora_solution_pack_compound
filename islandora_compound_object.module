@@ -248,40 +248,23 @@ function islandora_compound_object_xml_form_builder_form_associations() {
  * Implements hook_islandora_cmodel_islandora_view_object().
  */
 function islandora_compound_object_islandora_compoundCModel_islandora_view_object($object) {
-  // Get view of first child.
   $children = islandora_compound_object_get_parts($object->id);
   if (!empty($children)) {
     $first_child_id = reset($children);
     if ($first_child_id != $object->id) {
-      $first_child = islandora_object_load($first_child_id);
-      drupal_set_title($first_child->label);
-      return islandora_view_object($first_child);
-    }
-  }
-}
+      if (variable_get('islandora_compound_object_redirect_to_first', FALSE)) {
+        // Redirect to the first child of a compound.
+        $redirect_path = 'islandora/object/' . $first_child_id;
+        $options = array();
+        $options['query'] = drupal_get_query_parameters();
 
-/**
- * Implements hook_page_build().
- */
-function islandora_compound_object_page_build(&$page) {
-  // Redirect to first child of a compound if this is the compound page itself.
-  if (variable_get('islandora_compound_object_redirect_to_first', FALSE)) {
-    $item = menu_get_item();
-    if ($item && $item['path'] === 'islandora/object/%') {
-      $object = menu_get_object('islandora_object', 2);
-      if ($object) {
-        $children = islandora_compound_object_get_parts($object->id);
-        if (!empty($children)) {
-          // We found a compound with children, redirect to the first child.
-          $firstchild = $children[0];
-          if ($firstchild !== $object->id) {
-            $redirect_path = 'islandora/object/' . $firstchild;
-            $options = array();
-            $options['query'] = drupal_get_query_parameters();
-
-            drupal_goto($redirect_path, $options);
-          }
-        }
+        drupal_goto($redirect_path, $options);
+      }
+      else {
+        // Get view of first child.
+        $first_child = islandora_object_load($first_child_id);
+        drupal_set_title($first_child->label);
+        return islandora_view_object($first_child);
       }
     }
   }
