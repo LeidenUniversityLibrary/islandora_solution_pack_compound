@@ -1,4 +1,4 @@
-jQuery(document).ready( function($) {
+jQuery(window).load( function($) {
   var toc = jQuery('.table-of-contents');
   var content = toc.next();
   var tocheader = toc.find('.toc-header');
