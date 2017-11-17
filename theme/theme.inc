@@ -37,6 +37,14 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
     }
   }
 
+  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+  $compoundtype = islandora_compound_object_get_type($parent_object);
+  $objecttypes = islandora_compound_object_types();
+
+  if (isset($objecttypes[$compoundtype]['javascript'])) {
+    drupal_add_js(drupal_get_path('module', 'islandora_compound_object') . '/js/' . $objecttypes[$compoundtype]['javascript']);
+  }
+
   // If the parent TN is not set, only show children if there's more than one.
   // If the parent TN is set, show all children even if there's only one.
 
@@ -58,11 +66,18 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
         $sibling['TN'] = $folder_image_path;
       }
       $sibling['label'] = $sibling_object->label;
+  
+      if (isset($objecttypes[$compoundtype]['relations'])) {
+        foreach ($objecttypes[$compoundtype]['relations'] as $relkey => $relvalues) {
+          if (isset($relvalues['predicate'])) {
+            $value = islandora_compound_object_get_relation($sibling_object, $relvalues['predicate'], $parent_object);
+            $sibling[$relkey] = $value;
+          }
+        }
+      }
       $themed_siblings[] = $sibling;
     }
   }
-  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
-  $compoundtype = islandora_compound_object_get_type($parent_object);
   if (!empty($compoundtype)) {
     $variables['theme_hook_suggestions'] += theme_get_suggestions(array($compoundtype), 'islandora_compound_prev_next');
   }
@@ -77,15 +92,16 @@ function theme_islandora_compound_object_draggable_table(array $variables) {
   $rows = array();
   $weight_class = 'islandora-page-weight';
   $table = &$form['table'];
+  $headerkeys = array_keys($table['#header']);
   foreach (element_children($table['rows']) as $id) {
     $row = &$table['rows'][$id];
     $row['weight']['#attributes'] = array('class' => array($weight_class));
+    $data = array();
+    foreach ($headerkeys as $headerkey) {
+      $data[$headerkey] = drupal_render($row[$headerkey]);
+    }
     $rows[] = array(
-      'data' => array(
-        drupal_render($row['label']),
-        drupal_render($row['pid']),
-        drupal_render($row['weight']),
-      ),
+      'data' => $data,
       'class' => array('draggable'),
     );
   }

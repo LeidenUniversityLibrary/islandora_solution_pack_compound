@@ -25,8 +25,8 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
 
   if ((variable_get('islandora_compound_object_compound_children', TRUE) && in_array(ISLANDORA_COMPOUND_OBJECT_CMODEL, $object->models)) || !variable_get('islandora_compound_object_compound_children', TRUE)) {
     // Choose compound type
-    $options = islandora_compound_object_types();
-    $options = array_map(function($v) { return $v['name']; }, $options);
+    $objecttypes = islandora_compound_object_types();
+    $options = array_map(function($v) { return $v['name']; }, $objecttypes);
     $currenttype = islandora_compound_object_get_type($object);
     $form['compound_type'] = array(
       '#type' => 'fieldset',
@@ -37,6 +37,68 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
       '#options' => $options,
       '#default_value' => $currenttype,
     );
+
+    // Manage children
+    $children = islandora_compound_object_get_parts($object->id, TRUE);
+    $extrafields = isset($objecttypes[$currenttype]['relations'])?$objecttypes[$currenttype]['relations']:array();
+    $seq = 0;
+    $delta = count($children);
+    $map = function($child) use($delta, &$seq, $extrafields, $object) {
+      $seq++;
+      $row = array(
+        'label' => array('#markup' => check_plain($child['title'])),
+        'pid' => array('#markup' => check_plain($child['pid'])),
+        'weight' => array(
+          '#type' => 'weight',
+          '#title' => t('Weight'),
+          '#default_value' => $seq,
+          '#delta' => $delta,
+          '#title-display' => 'invisible',
+        ));
+      $childobject = islandora_object_load($child['pid']);
+      foreach ($extrafields as $fieldkey => $extrafield) {
+        $row[$fieldkey] = array(
+          '#type' => 'textfield',
+          '#required' => isset($extrafield['input']['validation']['required'])?$extrafield['input']['validation']['required']:FALSE,
+          '#default_value' => islandora_compound_object_get_relation($childobject, $extrafield['predicate'], $object),
+        );
+        if (isset($extrafield['input']['validation']['pattern'])) {
+          $row[$fieldkey]['#attributes']['pattern'] = $extrafield['input']['validation']['pattern'];
+          if (isset($extrafield['input']['validation']['title'])) {
+            $row[$fieldkey]['#attributes']['title'] = $extrafield['input']['validation']['title'];
+          }
+        }
+      }
+      $row['delete'] = array('#type' => 'checkbox');
+      return $row;
+    };
+    $rows = array_map($map, $children);
+  
+    $form['manage']['table'] = array(
+      '#theme' => 'islandora_compound_object_draggable_table',
+      '#tree' => TRUE,
+      'table' => array(
+        '#type' => 'markup',
+        '#header' => array(
+          'label' => t('Title'),
+          'pid' => t('Object ID'),
+          'weight' => t('Weight')
+        ),
+        'rows' => $rows,
+      ),
+      'actions' => array(
+        '#type' => 'actions',
+        'submit' => array(
+          '#type' => 'submit',
+          '#value' => t('Save Changes'),
+          '#submit' => array('islandora_compound_object_sequence_submit'),
+        ),
+      ),
+    );
+    foreach ($extrafields as $fieldkey => $extrafield) {
+      $form['manage']['table']['table']['#header'][$fieldkey] = $extrafield['title'];
+    }
+    $form['manage']['table']['table']['#header']['delete'] = t('Delete');
 
     // Add child objects.
     $form['add_children'] = array(
@@ -50,6 +112,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
       '#autocomplete_path' => 'islandora_compound_object/autocomplete/child',
     );
 
+/*
     // Remove children.
     $children = islandora_compound_object_get_parts($object->id, TRUE);
     if (!empty($children)) {
@@ -78,43 +141,46 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
         '#theme' => 'islandora_compound_object_draggable_table',
       ) + islandora_compound_object_get_tabledrag_element($object);
     }
+*/
   }
-  // Add parents.
-  $form['add_to_parent'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Associate with Parent Object'),
-    '#description' => t('Add this object to a parent object'),
-  );
-  $form['add_to_parent']['parent'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Parent Object Pid/Label'),
-    '#autocomplete_path' => 'islandora_compound_object/autocomplete/parent',
-  );
-
-  // Remove parents.
-  $parent_part_of = $object->relationships->get('info:fedora/fedora-system:def/relations-external#', $rels_predicate);
-  if (!empty($parent_part_of)) {
-    $form['parents'] = array(
+  if (empty($children)) {
+    // Add parents.
+    $form['add_to_parent'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Unlink From Parent'),
-      '#description' => t('Remove the relationship between this object and parent objects.'),
+      '#title' => t('Associate with Parent Object'),
+      '#description' => t('Add this object to a parent object'),
     );
-
-    $parents = array();
-    foreach ($parent_part_of as $parent) {
-      // Shouldn't be too much of a hit but would be good to avoid the
-      // islandora_object_loads.
-      $pid = $parent['object']['value'];
-      $parent_object = islandora_object_load($pid);
-      $parents[$pid] = array('title' => $parent_object->label, 'pid' => $pid);
+    $form['add_to_parent']['parent'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Parent Object Pid/Label'),
+      '#autocomplete_path' => 'islandora_compound_object/autocomplete/parent',
+    );
+  
+    // Remove parents.
+    $parent_part_of = $object->relationships->get('info:fedora/fedora-system:def/relations-external#', $rels_predicate);
+    if (!empty($parent_part_of)) {
+      $form['parents'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Unlink From Parent'),
+        '#description' => t('Remove the relationship between this object and parent objects.'),
+      );
+  
+      $parents = array();
+      foreach ($parent_part_of as $parent) {
+        // Shouldn't be too much of a hit but would be good to avoid the
+        // islandora_object_loads.
+        $pid = $parent['object']['value'];
+        $parent_object = islandora_object_load($pid);
+        $parents[$pid] = array('title' => $parent_object->label, 'pid' => $pid);
+      }
+  
+      $form['parents']['unlink_parents'] = array(
+        '#type' => 'tableselect',
+        '#title' => t('Parents'),
+        '#header' => array('title' => t('Title'), 'pid' => t('Object ID')),
+        '#options' => $parents,
+      );
     }
-
-    $form['parents']['unlink_parents'] = array(
-      '#type' => 'tableselect',
-      '#title' => t('Parents'),
-      '#header' => array('title' => t('Title'), 'pid' => t('Object ID')),
-      '#options' => $parents,
-    );
   }
 
   $form['object'] = array(
@@ -326,7 +392,16 @@ function islandora_compound_object_sequence_submit($form, &$form_state) {
   $object = $form_state['object'];
   $compounds = &$form_state['values']['table']['table']['rows'];
   if ($compounds) {
-    uasort($compounds, 'drupal_sort_weight');
+    module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+
+    $objecttypes = islandora_compound_object_types();
+    $currenttype = islandora_compound_object_get_type($object);
+
+    $comparefunc = 'drupal_sort_weight';
+    if (isset($objecttypes[$currenttype]['comparefunction'])) {
+      $comparefunc = $objecttypes[$currenttype]['comparefunction'];
+    }
+    uasort($compounds, $comparefunc);
     islandora_compound_object_sequence_batch($object->id, $compounds);
   }
 }
@@ -384,17 +459,49 @@ function islandora_compound_object_change_thumbnail($parent) {
  *   The built up operations array.
  */
 function islandora_compound_object_build_sequence_operations($parent_pid, $compounds) {
+  module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
+
+  $parent = islandora_object_load($parent_pid);
+  $objecttypes = islandora_compound_object_types();
+  $currenttype = islandora_compound_object_get_type($parent);
+
   $operations = array();
   $start_seq = 1;
-  foreach ($compounds as $child_pid => $weight) {
+  $deletedobjects = array();
+  foreach ($compounds as $child_pid => $values) {
+    if (isset($values['delete']) && $values['delete']) {
+      $deletedobjects[] = islandora_object_load($child_pid);
+    }
+    else {
+      $operations[] = array(
+        'islandora_compound_object_update_sequence', array(
+          $parent_pid,
+          $child_pid,
+          $start_seq,
+        ),
+      );
+      $start_seq++;
+      foreach ($values as $key => $value) {
+        if (isset($objecttypes[$currenttype]['relations'][$key]['predicate'])) {
+          $operations[] = array(
+            'islandora_compound_object_update_relation', array(
+              $parent_pid,
+              $child_pid,
+              $objecttypes[$currenttype]['relations'][$key]['predicate'],
+              $value,
+            ),
+          );
+        }
+      }
+    }
+  }
+  if (count($deletedobjects) > 0) {
     $operations[] = array(
-      'islandora_compound_object_update_sequence', array(
-        $parent_pid,
-        $child_pid,
-        $start_seq,
+      'islandora_compound_object_remove_parent', array(
+        $deletedobjects,
+        array($parent_pid),
       ),
     );
-    $start_seq++;
   }
   $operations[] = array(
     'islandora_compound_object_change_thumbnail', array(
@@ -417,14 +524,45 @@ function islandora_compound_object_build_sequence_operations($parent_pid, $compo
 function islandora_compound_object_update_sequence($parent_pid, $child_pid, $start_seq, &$context) {
   $escaped_pid = str_replace(':', '_', $parent_pid);
   $child_object = islandora_object_load($child_pid);
-  $child_object->relationships->remove(ISLANDORA_RELS_EXT_URI, "isSequenceNumberOf$escaped_pid");
-  $child_object->relationships->add(ISLANDORA_RELS_EXT_URI, "isSequenceNumberOf$escaped_pid", $start_seq, RELS_TYPE_PLAIN_LITERAL);
-  $context['message'] = t('Inserting page "@label" (@pid) at position "@pos"', array(
-    '@label' => $child_object->label,
-    '@pid' => $child_object->id,
-    '@pos' => $start_seq,
-    )
-  );
+  $rels = $child_object->relationships->get(ISLANDORA_RELS_EXT_URI, "isSequenceNumberOf$escaped_pid");
+  if (!(isset($rels[0]['object']['value']) && ($rels[0]['object']['value'] == $start_seq))) {
+    $child_object->relationships->autoCommit = FALSE;
+    $child_object->relationships->remove(ISLANDORA_RELS_EXT_URI, "isSequenceNumberOf$escaped_pid");
+    $child_object->relationships->add(ISLANDORA_RELS_EXT_URI, "isSequenceNumberOf$escaped_pid", $start_seq, RELS_TYPE_PLAIN_LITERAL);
+    $child_object->relationships->commitRelationships();
+    $context['message'] = t('Inserting page "@label" (@pid) at position "@pos"', array(
+      '@label' => $child_object->label,
+      '@pid' => $child_object->id,
+      '@pos' => $start_seq,
+      )
+    );
+  }
+}
+
+/**
+ * Updates the relationships between object and parent.
+ *
+ * @param string $parent_pid
+ *   The pid of the parent object.
+ * @param array $child_pid
+ *   The pid of the child object;
+ * @param array $context
+ *   Context used in the batch.
+ */
+function islandora_compound_object_update_relation($parent_pid, $child_pid, $relation, $value, &$context) {
+  $escaped_pid = str_replace(':', '_', $parent_pid);
+  $child_object = islandora_object_load($child_pid);
+  $rels = $child_object->relationships->get(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid);
+  if (!(isset($rels[0]['object']['value']) && ($rels[0]['object']['value'] == $value))) {
+    $child_object->relationships->remove(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid);
+    $child_object->relationships->add(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid, $value, RELS_TYPE_PLAIN_LITERAL);
+    $context['message'] = t('Adding relation to page "@label" (@pid) with value "@value"', array(
+      '@label' => $child_object->label,
+      '@pid' => $child_object->id,
+      '@value' => $value,
+      )
+    );
+  }
 }
 
 /**
