@@ -1,3 +1,10 @@
+jQuery(window).ready( function($) {
+  var viewer = jQuery('.content .islandora-viewer');
+  var toc = jQuery('.islandora-compound-prev-next--hierarchical.table-of-contents');
+  if (viewer.size() == 1 && toc.size() == 1) {
+    toc.insertBefore(viewer);
+  }
+});
 jQuery(window).load( function($) {
   var toc = jQuery('.table-of-contents');
   var content = toc.next();
