@@ -37,6 +37,23 @@ function islandora_compound_object_types() {
       'comparefunction' => 'islandora_compound_object_hierarchical_compare',
       'javascript' => 'hierarchical.js',
     ),
+    'map' => array(
+      'name' => t('Map'),
+      'relations' => array(
+        'coordinates' => array(
+          'title' => t('Coordinates'),
+          'predicate' => 'coordinates',
+          'input' => array(
+            'validation' => array(
+              'required' => TRUE,
+              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*', 
+              'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
+            ),
+          ),
+        ),
+      ),
+      'javascript' => 'map.js',
+    ),
   );
 }
 
