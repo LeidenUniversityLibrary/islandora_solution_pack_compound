@@ -11,4 +11,9 @@
     <dsTypeModel ID="MODS" optional="true">
         <form FORMAT_URI="http://www.loc.gov/mods/v3" MIME="application/xml"></form>
     </dsTypeModel>
+    <dsTypeModel ID="TN" optional="true">
+        <form MIME="image/jpeg"/>
+        <form MIME="image/png"/>
+        <form MIME="image/gif"/>
+    </dsTypeModel>
 </dsCompositeModel>
