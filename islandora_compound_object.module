@@ -574,6 +574,7 @@ function islandora_compound_object_menu_local_tasks_alter(&$data, $router_item, 
         )), PASS_THROUGH);
       }
       if (isset($data['tabs'][0]['output'])) {
+        $query_params = drupal_get_query_parameters();
         foreach ($data['tabs'][0]['output'] as $key => &$tab) {
           if ($tab['#link']['path'] == 'islandora/object/%/compound_count') {
             if (in_array($root_path, $valid_paths) && !empty($compound_info)) {
@@ -601,6 +602,7 @@ function islandora_compound_object_menu_local_tasks_alter(&$data, $router_item, 
                   'id' => 'islandora-compound-previous-link',
                 ),
                 'html' => FALSE,
+                'query' => $query_params,
               );
             }
             else {
@@ -617,6 +619,7 @@ function islandora_compound_object_menu_local_tasks_alter(&$data, $router_item, 
                   'id' => 'islandora-compound-next-link',
                 ),
                 'html' => FALSE,
+                'query' => $query_params,
               );
             }
             else {

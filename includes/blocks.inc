@@ -59,6 +59,7 @@ function islandora_compound_object_jail_display_block() {
         );
       }
 
+      $query_params = drupal_get_query_parameters();
       foreach ($compound_info['siblings_detailed'] as $sibling) {
         $path = 'islandora/object/' . $sibling['pid'] . '/datastream/TN/view';
         $class = array(
@@ -91,6 +92,7 @@ function islandora_compound_object_jail_display_block() {
             '#type' => 'link',
             '#title' => t("@title", array("@title" => $sibling['title'])),
             '#href' => "islandora/object/{$sibling['pid']}",
+            '#options' => array('query' => $query_params),
           ),
           'content' => array(
             '#theme' => 'link',
@@ -99,6 +101,7 @@ function islandora_compound_object_jail_display_block() {
             '#options' => array(
               'attributes' => array(),
               'html' => TRUE,
+              'query' => $query_params,
             ),
           ),
         );
