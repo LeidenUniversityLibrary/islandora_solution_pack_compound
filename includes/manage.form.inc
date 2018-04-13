@@ -73,7 +73,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
       return $row;
     };
     $rows = array_map($map, $children);
-  
+
     $form['manage']['table'] = array(
       '#theme' => 'islandora_compound_object_draggable_table',
       '#tree' => TRUE,
@@ -155,7 +155,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
       '#title' => t('Parent Object Pid/Label'),
       '#autocomplete_path' => 'islandora_compound_object/autocomplete/parent',
     );
-  
+
     // Remove parents.
     $parent_part_of = $object->relationships->get('info:fedora/fedora-system:def/relations-external#', $rels_predicate);
     if (!empty($parent_part_of)) {
@@ -164,7 +164,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
         '#title' => t('Unlink From Parent'),
         '#description' => t('Remove the relationship between this object and parent objects.'),
       );
-  
+
       $parents = array();
       foreach ($parent_part_of as $parent) {
         // Shouldn't be too much of a hit but would be good to avoid the
@@ -173,7 +173,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
         $parent_object = islandora_object_load($pid);
         $parents[$pid] = array('title' => $parent_object->label, 'pid' => $pid);
       }
-  
+
       $form['parents']['unlink_parents'] = array(
         '#type' => 'tableselect',
         '#title' => t('Parents'),
@@ -207,7 +207,7 @@ function islandora_compound_object_manage_form_validate($form, &$form_state) {
   // Type
   if (!empty($form_state['values']['type_select'])) {
     module_load_include('inc', 'islandora_compound_object', 'includes/compound_types');
-  
+
     $possible_types = islandora_compound_object_types();
     if (!isset($possible_types[$form_state['values']['type_select']])) {
       form_set_error('type_select', t('This type is not allowed.'));

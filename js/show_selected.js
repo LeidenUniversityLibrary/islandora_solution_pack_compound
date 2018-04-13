@@ -7,7 +7,7 @@
  * Scrolls the selected (active) child of a compound into view.
  */
 jQuery(window).load(function() {
-  // Find the compounds container and the active child. 
+  // Find the compounds container and the active child.
   // Do this after the whole page loads, because the thumbs of the compound children need to be loaded
   // for this to work correctly.
   var activeCompoundChild;
@@ -33,20 +33,20 @@ jQuery(window).load(function() {
       var activeWidth = activeCompoundChild.outerWidth();
       var newScrollTop = (activeOffset.top - containerOffset.top);
       var newScrollLeft = (activeOffset.left - containerOffset.left);
-      
+
       if ((container.scrollHeight > container.clientHeight) && (newScrollTop > (containerHeight - 2*activeHeight))) {
-        if ((newScrollTop + 2*activeHeight) < container.scrollHeight) { 
+        if ((newScrollTop + 2*activeHeight) < container.scrollHeight) {
           newScrollTop -= activeHeight;
         }
         container.scrollTop = newScrollTop;
       }
       if ((container.scrollWidth > container.clientWidth) && (newScrollLeft > (containerWidth - 2*activeWidth))) {
-        if ((newScrollLeft + 2*activeWidth) < container.scrollWidth) { 
+        if ((newScrollLeft + 2*activeWidth) < container.scrollWidth) {
           newScrollLeft -= activeWidth;
         }
         container.scrollLeft = newScrollLeft;
       }
-      
+
       return false;
     }
   });

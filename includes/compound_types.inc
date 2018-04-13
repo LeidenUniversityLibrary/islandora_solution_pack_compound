@@ -28,7 +28,7 @@ function islandora_compound_object_types() {
           'input' => array(
             'validation' => array(
               'required' => TRUE,
-              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*', 
+              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
               'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
             ),
           ),
@@ -46,7 +46,7 @@ function islandora_compound_object_types() {
           'input' => array(
             'validation' => array(
               'required' => TRUE,
-              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*', 
+              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
               'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
             ),
           ),
@@ -117,7 +117,7 @@ function islandora_compound_object_set_by_predicate($object, $predicate, $value)
 function islandora_compound_object_hierarchical_compare($a, $b) {
   $la = explode('.', $a['level']);
   $lb = explode('.', $b['level']);
-  
+
   $m = min(count($la), count($lb));
   for ($i = 0; $i < $m; $i++) {
     $na = (integer)$la[$i];

@@ -66,7 +66,7 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
         $sibling['TN'] = $folder_image_path;
       }
       $sibling['label'] = $sibling_object->label;
-  
+
       if (isset($objecttypes[$compoundtype]['relations'])) {
         foreach ($objecttypes[$compoundtype]['relations'] as $relkey => $relvalues) {
           if (isset($relvalues['predicate'])) {
