@@ -556,7 +556,7 @@ function islandora_compound_object_update_relation($parent_pid, $child_pid, $rel
     $child_object->relationships->remove(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid);
     $child_object->relationships->add(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid, $value, RELS_TYPE_PLAIN_LITERAL);
     $child_object->relationships->commitRelationships();
-    $context['message'] = t('Adding relation to page "@label" (@pid) with value "@value"', array(
+    $context['message'] = t('Adding relation to "@label" (@pid) with value "@value"', array(
       '@label' => $child_object->label,
       '@pid' => $child_object->id,
       '@value' => $value,

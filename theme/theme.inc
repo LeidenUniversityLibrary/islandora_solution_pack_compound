@@ -49,6 +49,7 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
   // If the parent TN is set, show all children even if there's only one.
 
   if (($variables['child_count'] > 1 && !$variables['parent_tn']) || ($variables['child_count'] > 0 && $variables['parent_tn'])) {
+    $parent_label = $parent_object->label;
     for ($i = 0; $i < count($variables['siblings']); $i += 1) {
       $sibling = array();
       $sibling['pid'] = $variables['siblings'][$i];
@@ -66,6 +67,20 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
         $sibling['TN'] = $folder_image_path;
       }
       $sibling['label'] = $sibling_object->label;
+
+      $label = preg_replace('!^\s*' . preg_quote($parent_label, '!') . '[ ,.;:/-]+!', "", $sibling['label']);
+      if ($label === $sibling['label']) {
+        if (preg_match('/^(.*)\.\.\.[ ,.;:\/-]+(.*)$/', $label, $matches)) {
+          $partofparent = $matches[1];
+          if (substr($parent_label, 0, strlen($partofparent)) === $partofparent) {
+            $label = $matches[2];
+          }
+        }
+      }
+      if ($label === NULL || strlen($label) ==  0 || ctype_space($label)) {
+        $label = $sibling['label'];
+      }
+      $sibling['shortlabel'] = $label;
 
       if (isset($objecttypes[$compoundtype]['relations']['predicate'])) {
         $value = islandora_compound_object_get_relation($sibling_object, $objecttypes[$compoundtype]['relations']['predicate'], $parent_object);
