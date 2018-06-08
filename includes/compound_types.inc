@@ -22,15 +22,13 @@ function islandora_compound_object_types() {
     'hierarchical' => array(
       'name' => t('Hierarchical'),
       'relations' => array(
-        'level' => array(
-          'title' => t('Level'),
-          'predicate' => 'isHierarchicalLevelOf',
-          'input' => array(
-            'validation' => array(
-              'required' => TRUE,
-              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
-              'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
-            ),
+        'title' => t('Level'),
+        'predicate' => 'isHierarchicalLevelOf',
+        'input' => array(
+          'validation' => array(
+            'required' => TRUE,
+            'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
+            'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
           ),
         ),
       ),
@@ -40,15 +38,13 @@ function islandora_compound_object_types() {
     'map' => array(
       'name' => t('Map'),
       'relations' => array(
-        'coordinates' => array(
-          'title' => t('Coordinates'),
-          'predicate' => 'coordinates',
-          'input' => array(
-            'validation' => array(
-              'required' => TRUE,
-              'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
-              'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
-            ),
+        'title' => t('Coordinates'),
+        'predicate' => 'coordinates',
+        'input' => array(
+          'validation' => array(
+            'required' => TRUE,
+            'pattern' => '[1-9][0-9]*(\.[1-9][0-9]*)*',
+            'title' => t('Numbers separated by points, e.g. 4 or 1.2 or 3.10.5'),
           ),
         ),
       ),
@@ -115,8 +111,8 @@ function islandora_compound_object_set_by_predicate($object, $predicate, $value)
  * Compare 2 hierarchical level values
  */
 function islandora_compound_object_hierarchical_compare($a, $b) {
-  $la = explode('.', $a['level']);
-  $lb = explode('.', $b['level']);
+  $la = explode('.', $a['relation']);
+  $lb = explode('.', $b['relation']);
 
   $m = min(count($la), count($lb));
   for ($i = 0; $i < $m; $i++) {
@@ -129,5 +125,5 @@ function islandora_compound_object_hierarchical_compare($a, $b) {
       return -1;
     }
   }
-  return strcmp($a['level'], $b['level']);
+  return strcmp($a['relation'], $b['relation']);
 }

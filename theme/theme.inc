@@ -67,13 +67,9 @@ function template_preprocess_islandora_compound_prev_next(array &$variables) {
       }
       $sibling['label'] = $sibling_object->label;
 
-      if (isset($objecttypes[$compoundtype]['relations'])) {
-        foreach ($objecttypes[$compoundtype]['relations'] as $relkey => $relvalues) {
-          if (isset($relvalues['predicate'])) {
-            $value = islandora_compound_object_get_relation($sibling_object, $relvalues['predicate'], $parent_object);
-            $sibling[$relkey] = $value;
-          }
-        }
+      if (isset($objecttypes[$compoundtype]['relations']['predicate'])) {
+        $value = islandora_compound_object_get_relation($sibling_object, $objecttypes[$compoundtype]['relations']['predicate'], $parent_object);
+        $sibling['relation'] = $value;
       }
       $themed_siblings[] = $sibling;
     }

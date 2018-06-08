@@ -40,7 +40,7 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
 
     // Manage children
     $children = islandora_compound_object_get_parts($object->id, TRUE);
-    $extrafields = isset($objecttypes[$currenttype]['relations'])?$objecttypes[$currenttype]['relations']:array();
+    $extrafields = isset($objecttypes[$currenttype]['relations'])?$objecttypes[$currenttype]['relations']:NULL;
     $seq = 0;
     $delta = count($children);
     $map = function($child) use($delta, &$seq, $extrafields, $object) {
@@ -56,17 +56,17 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
           '#title-display' => 'invisible',
         ));
       $childobject = islandora_object_load($child['pid']);
-      foreach ($extrafields as $fieldkey => $extrafield) {
-        $row[$fieldkey] = array(
+      if (isset($extrafields)) {
+        $row["relation"] = array(
           '#type' => 'textfield',
-          '#required' => isset($extrafield['input']['validation']['required'])?$extrafield['input']['validation']['required']:FALSE,
-          '#default_value' => islandora_compound_object_get_relation($childobject, $extrafield['predicate'], $object),
+          '#required' => isset($extrafields['input']['validation']['required'])?$extrafields['input']['validation']['required']:FALSE,
+          '#default_value' => isset($extrafields['predicate'])?islandora_compound_object_get_relation($childobject, $extrafields['predicate'], $object):"",
         );
-        if (isset($extrafield['input']['validation']['pattern'])) {
-          $row[$fieldkey]['#attributes']['pattern'] = $extrafield['input']['validation']['pattern'];
-          if (isset($extrafield['input']['validation']['title'])) {
-            $row[$fieldkey]['#attributes']['title'] = $extrafield['input']['validation']['title'];
-          }
+      }
+      if (isset($extrafields['input']['validation']['pattern'])) {
+        $row["relation"]['#attributes']['pattern'] = $extrafields['input']['validation']['pattern'];
+        if (isset($extrafields['input']['validation']['title'])) {
+          $row["relation"]['#attributes']['title'] = $extrafields['input']['validation']['title'];
         }
       }
       $row['delete'] = array('#type' => 'checkbox');
@@ -95,8 +95,8 @@ function islandora_compound_object_manage_form($form, &$form_state, $object) {
         ),
       ),
     );
-    foreach ($extrafields as $fieldkey => $extrafield) {
-      $form['manage']['table']['table']['#header'][$fieldkey] = $extrafield['title'];
+    if (isset($extrafields['title'])) {
+      $form['manage']['table']['table']['#header']['relation'] = $extrafields['title'];
     }
     $form['manage']['table']['table']['#header']['delete'] = t('Delete');
 
@@ -481,17 +481,15 @@ function islandora_compound_object_build_sequence_operations($parent_pid, $compo
         ),
       );
       $start_seq++;
-      foreach ($values as $key => $value) {
-        if (isset($objecttypes[$currenttype]['relations'][$key]['predicate'])) {
-          $operations[] = array(
-            'islandora_compound_object_update_relation', array(
-              $parent_pid,
-              $child_pid,
-              $objecttypes[$currenttype]['relations'][$key]['predicate'],
-              $value,
-            ),
-          );
-        }
+      if (isset($objecttypes[$currenttype]['relations']['predicate'], $values['relation'])) {
+        $operations[] = array(
+          'islandora_compound_object_update_relation', array(
+            $parent_pid,
+            $child_pid,
+            $objecttypes[$currenttype]['relations']['predicate'],
+            $values['relation'],
+          ),
+        );
       }
     }
   }
@@ -554,15 +552,19 @@ function islandora_compound_object_update_relation($parent_pid, $child_pid, $rel
   $child_object = islandora_object_load($child_pid);
   $rels = $child_object->relationships->get(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid);
   if (!(isset($rels[0]['object']['value']) && ($rels[0]['object']['value'] == $value))) {
+    $child_object->relationships->autoCommit = FALSE;
     $child_object->relationships->remove(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid);
     $child_object->relationships->add(ISLANDORA_RELS_EXT_URI, $relation . $escaped_pid, $value, RELS_TYPE_PLAIN_LITERAL);
+    $child_object->relationships->commitRelationships();
     $context['message'] = t('Adding relation to page "@label" (@pid) with value "@value"', array(
       '@label' => $child_object->label,
       '@pid' => $child_object->id,
       '@value' => $value,
       )
     );
+    return TRUE;
   }
+  return FALSE;
 }
 
 /**
