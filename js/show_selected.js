@@ -36,7 +36,7 @@ jQuery(window).load(function() {
 
       if ((container.scrollHeight > container.clientHeight) && (newScrollTop > (containerHeight - 2*activeHeight))) {
         if ((newScrollTop + 2*activeHeight) < container.scrollHeight) {
-          newScrollTop -= activeHeight;
+          newScrollTop -= 2*activeHeight;
         }
         container.scrollTop = newScrollTop;
       }
@@ -46,8 +46,6 @@ jQuery(window).load(function() {
         }
         container.scrollLeft = newScrollLeft;
       }
-
-      return false;
     }
   });
 });
