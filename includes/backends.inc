@@ -30,21 +30,7 @@ EOQ;
     $results = $connection->repository->ri->sparqlQuery($query);
 
     // Sort the objects into their proper order.
-    $sort = function($a, $b) {
-      $a = $a['seq']['value'];
-      $b = $b['seq']['value'];
-      if ($a === $b) {
-        return 0;
-      }
-      if (empty($a)) {
-        return 1;
-      }
-      if (empty($b)) {
-        return -1;
-      }
-      return $a - $b;
-    };
-    uasort($results, $sort);
+    uasort($results, 'islandora_compound_object_seq_sort');
 
     foreach ($results as $result) {
       $object = islandora_object_load($result['object']['value']);
@@ -59,6 +45,13 @@ EOQ;
   }
 
   return $objects;
+}
+
+function islandora_compound_object_seq_sort($a, $b) {
+  $a = $a['seq']['value'];
+  $b = $b['seq']['value'];
+
+  return $a - $b;
 }
 
 /**
@@ -113,11 +106,13 @@ WHERE {
   FILTER((!bound(?role) && !bound(?user)) || (bound(?user) && ?user='{$user_name}') || (bound(?role) && ($role_matcher)))
   $namespace_filter
 }
-ORDER BY ASC(?seq)
 EOQ;
 
   $connection = islandora_get_tuque_connection();
   $results = $connection ? $connection->repository->ri->sparqlQuery($query) : array();
+
+  // Sort the objects into their proper order.
+  uasort($results, 'islandora_compound_object_seq_sort');
 
   foreach ($results as $result) {
     $objects[$result['object']['value']] = array(
