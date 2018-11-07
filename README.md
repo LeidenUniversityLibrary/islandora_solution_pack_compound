@@ -30,9 +30,7 @@ Set the 'Child relationship predicate' and 'Solr filter query', as well as selec
 Optionally, enable the JAIL compound block to utilize the lazy loading image
 ability as outlined below.
 
-![Configuration](https://cloud.githubusercontent.com/assets/11573234/24557551/165e1a1c-1606-11e7-854b-0ec48ef29ae5.JPG)
-
-
+![Configuration](https://user-images.githubusercontent.com/25011926/39889778-d1a91aca-5466-11e8-8eb1-1978cac81104.png)
 
 **Block**:
 
@@ -70,7 +68,7 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 ## Maintainers/Sponsors
 Current maintainers:
 
-* [Jared Whiklo](https://github.com/whikloj)
+* [Diego Pino](https://github.com/diegopino)
 
 ## Development
 
