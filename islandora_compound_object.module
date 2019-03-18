@@ -297,10 +297,12 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
         drupal_goto($redirect_path, $options);
       }
       else {
-        // Get view of first child.
-        $first_child = islandora_object_load($first_child_id);
-        drupal_set_title($first_child->label);
-        return islandora_view_object($first_child);
+        if (!variable_get('islandora_compound_object_display_compound', FALSE)) {
+          // Get view of first child.
+          $first_child = islandora_object_load($first_child_id);
+          drupal_set_title($first_child->label);
+          return islandora_view_object($first_child);
+        }
       }
     }
   }

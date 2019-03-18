@@ -32,6 +32,7 @@ function islandora_compound_object_uninstall() {
     'islandora_compound_object_query_backend',
     'islandora_compound_object_tn_deriv_hooks',
     'islandora_compound_object_redirect_to_first',
+    'islandora_compound_object_display_compound',
   );
   array_walk($variables, 'variable_del');
 }

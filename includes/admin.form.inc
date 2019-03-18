@@ -102,6 +102,14 @@ function islandora_compound_object_admin_form($form, &$form_state) {
     '#element_validate' => array('islandora_compound_object_admin_form_redirect_to_first_validation'),
   );
 
+  $form['islandora_compound_object_display_compound'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display the compound page.'),
+    '#description' => t('When enabled, the compound page is displayed using the compound object. When disabled the first child object of the compound object is used.'),
+    '#default_value' => variable_get('islandora_compound_object_display_compound', FALSE),
+    '#element_validate' => array('islandora_compound_object_display_compound_validation'),
+  );
+
   $form['islandora_compound_object_query_backend'] = array(
     '#type' => 'radios',
     '#title' => t('Compound Member Query'),
@@ -154,6 +162,19 @@ function islandora_compound_object_admin_form_redirect_to_first_validation(array
     }
   }
 }
+
+function islandora_compound_object_display_compound_validation(array $element, array &$form_state, array $form) {
+  if ($element['#value'] == 1) {
+    if (isset($form_state['values']['islandora_compound_object_redirect_to_first'])
+        && $form_state['values']['islandora_compound_object_redirect_to_first'] == 1) {
+      $parent_title = rtrim($element['#title'], '.!?');
+      $first_title = rtrim($form['islandora_compound_object_redirect_to_first']['#title'], '.!?');
+      drupal_set_message(t("Enabling both %first and %parent is not recommended, because when redirect to first is enabled the compound can never be displayed.",
+        array('%first' => $first_title, '%parent' => $parent_title)), 'warning');
+    }
+  }
+}
+
 
 /**
  * Solr fq element state validation callback.
