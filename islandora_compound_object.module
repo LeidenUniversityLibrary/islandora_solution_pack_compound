@@ -119,6 +119,16 @@ function islandora_compound_object_theme($existing, $type, $theme, $path) {
       'render element' => 'form',
       'file' => 'theme/theme.inc',
     ),
+    'islandora_compound_object' => array(
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-compound-object',
+      // We can add pids to the end of this pattern in our preprocess function
+      // and templates will be able to have have a pid appended to the template
+      // name to overide a template on a per object basis. An example template
+      // would be named islandora-compound-obkect--islandora-27.tpl.phps.
+      'pattern' => 'islandora_compound_object__',
+      'variables' => array('islandora_object' => NULL, 'children' => NULL),
+    ),
   );
 }
 
@@ -297,7 +307,11 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
         drupal_goto($redirect_path, $options);
       }
       else {
-        if (!variable_get('islandora_compound_object_display_compound', FALSE)) {
+        if (variable_get('islandora_compound_object_display_compound', FALSE)) {
+          $output = theme('islandora_compound_object', array('islandora_object' => $object, 'children' => $children));
+          return array('' => $output);
+        }
+        else {
           // Get view of first child.
           $first_child = islandora_object_load($first_child_id);
           drupal_set_title($first_child->label);
