@@ -12,6 +12,7 @@ define('ISLANDORA_COMPOUND_OBJECT_CMODEL', 'islandora:compoundCModel');
 
 const ISLANDORA_COMPOUND_OBJECT_LEGACY_BACKEND = 'islandora_compound_object_legacy_sparql';
 const ISLANDORA_COMPOUND_OBJECT_SPARQL_BACKEND = 'islandora_compound_object_sparql_query_backend';
+const ISLANDORA_COMPOUND_OBJECT_SPARQL_COMPLIANT_BACKEND = 'islandora_compound_object_sparql_query_compliant_backend';
 
 /**
  * Implements hook_menu().
@@ -118,6 +119,16 @@ function islandora_compound_object_theme($existing, $type, $theme, $path) {
     'islandora_compound_object_draggable_table' => array(
       'render element' => 'form',
       'file' => 'theme/theme.inc',
+    ),
+    'islandora_compound_object' => array(
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-compound-object',
+      // We can add pids to the end of this pattern in our preprocess function
+      // and templates will be able to have have a pid appended to the template
+      // name to overide a template on a per object basis. An example template
+      // would be named islandora-compound-obkect--islandora-27.tpl.phps.
+      'pattern' => 'islandora_compound_object__',
+      'variables' => array('islandora_object' => NULL, 'children' => NULL),
     ),
   );
 }
@@ -275,6 +286,7 @@ function islandora_compound_object_xml_form_builder_form_associations() {
       'dsid' => 'MODS',
       'title_field' => array('titleInfo', 'title'),
       'transform' => 'mods_to_dc.xsl',
+      'self_transform' => 'islandora_cleanup_mods_extended.xsl',
       'template' => FALSE,
     ),
   );
@@ -297,10 +309,16 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
         drupal_goto($redirect_path, $options);
       }
       else {
-        // Get view of first child.
-        $first_child = islandora_object_load($first_child_id);
-        drupal_set_title($first_child->label);
-        return islandora_view_object($first_child);
+        if (variable_get('islandora_compound_object_display_compound', FALSE)) {
+          $output = theme('islandora_compound_object', array('islandora_object' => $object, 'children' => $children));
+          return array('' => $output);
+        }
+        else {
+          // Get view of first child.
+          $first_child = islandora_object_load($first_child_id);
+          drupal_set_title($first_child->label);
+          return islandora_view_object($first_child);
+        }
       }
     }
   }
@@ -737,7 +755,7 @@ function islandora_compound_object_retrieve_compound_info(AbstractObject $object
     $next_pid = (isset($siblings[$current_key + 1])) ? $siblings[$current_key + 1] : '';
 
     // Check if perms to show link for parent manage.
-    if (islandora_object_manage_access_callback(array(
+    if ($parent && islandora_object_manage_access_callback(array(
       ISLANDORA_METADATA_EDIT, ISLANDORA_MANAGE_PROPERTIES, ISLANDORA_ADD_DS), $parent)) {
       $parent_url = 'islandora/object/' . $parent_pid . '/manage';
     }
@@ -746,7 +764,7 @@ function islandora_compound_object_retrieve_compound_info(AbstractObject $object
     }
 
     $info = array(
-      'parent_label' => $parent->label,
+      'parent_label' => ($parent && $parent->label) ? $parent->label : NULL,
       'parent_pid' => $parent_pid,
       'parent_url' => $parent_url,
       'previous_pid' => $previous_pid,
@@ -799,6 +817,11 @@ function islandora_compound_object_islandora_compound_object_query_backends() {
     ISLANDORA_COMPOUND_OBJECT_SPARQL_BACKEND => array(
       'title' => t('SPARQL - Does a SPARQL query with filters. Generally faster than the default option.'),
       'callable' => 'islandora_compound_object_query_sparql',
+      'file' => "$module_path/includes/backends.inc",
+    ),
+    ISLANDORA_COMPOUND_OBJECT_SPARQL_COMPLIANT_BACKEND => array(
+      'title' => t('SPARQL - Use this option for fully compliant SPARQL triple stores. Does not work with Mulgara.'),
+      'callable' => 'islandora_compound_object_query_sparql_compliant',
       'file' => "$module_path/includes/backends.inc",
     ),
   );
