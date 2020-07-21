@@ -309,11 +309,7 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
         drupal_goto($redirect_path, $options);
       }
       else {
-        if (variable_get('islandora_compound_object_display_compound', FALSE)) {
-          $output = theme('islandora_compound_object', array('islandora_object' => $object, 'children' => $children));
-          return array('' => $output);
-        }
-        else {
+        if (!variable_get('islandora_compound_object_display_compound', FALSE)) {
           // Get view of first child.
           $first_child = islandora_object_load($first_child_id);
           drupal_set_title($first_child->label);
@@ -321,6 +317,10 @@ function islandora_compound_object_islandora_compoundCModel_islandora_view_objec
         }
       }
     }
+  }
+  if (variable_get('islandora_compound_object_display_compound', FALSE)) {
+    $output = theme('islandora_compound_object', array('islandora_object' => $object, 'children' => $children));
+    return array('' => $output);
   }
 }
 
